@@ -1,0 +1,1375 @@
+```jsx
+import React, { useState, useEffect } from 'react';
+
+const App = () => {
+  // State management
+  const [user, setUser] = useState(null);
+  const [pvzs, setPvzs] = useState([]);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [location, setLocation] = useState(null);
+  const [isTracking, setIsTracking] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
+  const [formData, setFormData] = useState({});
+  const [showModal, setShowModal] = useState(false);
+  const [modalType, setModalType] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Mock data initialization
+  useEffect(() => {
+    // Mock PVZ data
+    const mockPvzs = [
+      {
+        id: 1,
+        name: 'PVZ-001',
+        company: 'Company A',
+        address: '123 Main St',
+        status: 'closed',
+        operators: ['Operator 1', 'Operator 2'],
+        location: { lat: 55.751244, lng: 37.618423 },
+        metrics: {
+          dailyOrders: 15,
+          weeklyOrders: 88,
+          monthlyOrders: 345,
+          revenue: 125000,
+        },
+        financials: {
+          cashIn: 50000,
+          cashOut: 20000,
+          balance: 30000,
+          expenses: 15000,
+        }
+      },
+      {
+        id: 2,
+        name: 'PVZ-002',
+        company: 'Company B',
+        address: '456 Oak Ave',
+        status: 'open',
+        operators: ['Operator 3', 'Operator 4'],
+        location: { lat: 55.755826, lng: 37.617453 },
+        metrics: {
+          dailyOrders: 22,
+          weeklyOrders: 110,
+          monthlyOrders: 400,
+          revenue: 150000,
+        },
+        financials: {
+          cashIn: 60000,
+          cashOut: 25000,
+          balance: 35000,
+          expenses: 18000,
+        }
+      },
+      {
+        id: 3,
+        name: 'PVZ-003',
+        company: 'Company C',
+        address: '789 Pine Rd',
+        status: 'closed',
+        operators: ['Operator 5', 'Operator 6'],
+        location: { lat: 55.758826, lng: 37.627453 },
+        metrics: {
+          dailyOrders: 18,
+          weeklyOrders: 95,
+          monthlyOrders: 380,
+          revenue: 135000,
+        },
+        financials: {
+          cashIn: 55000,
+          cashOut: 22000,
+          balance: 33000,
+          expenses: 16000,
+        }
+      }
+    ];
+    
+    setPvzs(mockPvzs);
+  }, []);
+
+  // Mock login function
+  const handleLogin = (username, password) => {
+    // In a real app, this would make an API call
+    const mockUser = {
+      id: 1,
+      name: username,
+      role: 'manager', // Could be 'operator', 'manager', 'admin', or 'financier'
+      company: 'Company A',
+      pvzId: 1
+    };
+    
+    setUser(mockUser);
+    setShowLogin(false);
+  };
+
+  // Mock location tracking
+  const startLocationTracking = () => {
+    setIsTracking(true);
+    // In a real app, this would use the Geolocation API
+    setTimeout(() => {
+      setLocation({
+        lat: 55.751244 + Math.random() * 0.01,
+        lng: 37.618423 + Math.random() * 0.01,
+        timestamp: new Date()
+      });
+    }, 2000);
+  };
+
+  // Mock location tracking stop
+  const stopLocationTracking = () => {
+    setIsTracking(false);
+    setLocation(null);
+  };
+
+  // Handle opening PVZ
+  const openPvz = (pvzId) => {
+    const updatedPvzs = pvzs.map(pvz => 
+      pvz.id === pvzId ? { ...pvz, status: 'open' } : pvz
+    );
+    setPvzs(updatedPvzs);
+    startLocationTracking();
+  };
+
+  // Handle closing PVZ
+  const closePvz = (pvzId) => {
+    const updatedPvzs = pvzs.map(pvz => 
+      pvz.id === pvzId ? { ...pvz, status: 'closed' } : pvz
+    );
+    setPvzs(updatedPvzs);
+    stopLocationTracking();
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  // Handle form submission
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (modalType === 'addPvz' || modalType === 'editPvz') {
+      if (modalType === 'addPvz') {
+        const newPvz = {
+          ...formData,
+          id: pvzs.length + 1,
+          status: 'closed',
+          metrics: {
+            dailyOrders: 0,
+            weeklyOrders: 0,
+            monthlyOrders: 0,
+            revenue: 0,
+          },
+          financials: {
+            cashIn: 0,
+            cashOut: 0,
+            balance: 0,
+            expenses: 0,
+          }
+        };
+        setPvzs([...pvzs, newPvz]);
+      } else {
+        const updatedPvzs = pvzs.map(pvz => 
+          pvz.id === formData.id ? formData : pvz
+        );
+        setPvzs(updatedPvzs);
+      }
+    }
+    setShowModal(false);
+  };
+
+  // Filter PVZs based on search term
+  const filteredPvzs = pvzs.filter(pvz => 
+    pvz.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pvz.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    pvz.company.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Render login screen
+  const renderLogin = () => (
+    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+          Вход в систему
+        </h2>
+      </div>
+
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); handleLogin('test', 'test'); }}>
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+                Имя пользователя
+              </label>
+              <div className="mt-1">
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                Пароль
+              </label>
+              <div className="mt-1">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <button
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                Войти
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Render dashboard based on user role
+  const renderDashboard = () => {
+    if (!user) return null;
+
+    // Filter PVZs based on user role
+    const userPvzs = pvzs.filter(pvz => 
+      user.role === 'admin' || user.role === 'financier' || 
+      pvz.id === user.pvzId
+    );
+
+    return (
+      <div className="min-h-screen bg-gray-100">
+        {/* Header */}
+        <header className="bg-white shadow">
+          <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 className="text-3xl font-bold text-gray-900">PVZ Management</h1>
+            <div className="flex items-center space-x-4">
+              <span className="text-gray-600">{user.name} ({user.role})</span>
+              <button 
+                onClick={() => setUser(null)} 
+                className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium"
+              >
+                Выйти
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Main content */}
+        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+          <div className="px-4 py-6 sm:px-0">
+            {/* Navigation tabs */}
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className={`${
+                    activeTab === 'dashboard'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  Дашборд
+                </button>
+                <button
+                  onClick={() => setActiveTab('pvzs')}
+                  className={`${
+                    activeTab === 'pvzs'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  ПВЗ
+                </button>
+                <button
+                  onClick={() => setActiveTab('employees')}
+                  className={`${
+                    activeTab === 'employees'
+                      ? 'border-indigo-500 text-indigo-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                >
+                  Сотрудники
+                </button>
+                {user.role === 'admin' && (
+                  <button
+                    onClick={() => setActiveTab('settings')}
+                    className={`${
+                      activeTab === 'settings'
+                        ? 'border-indigo-500 text-indigo-600'
+                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                  >
+                    Настройки
+                  </button>
+                )}
+              </nav>
+            </div>
+
+            {/* Dashboard content */}
+            {activeTab === 'dashboard' && (
+              <div className="mt-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Обзор</h2>
+                
+                {/* Status cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
+                          <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                          </svg>
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Открытые ПВЗ
+                            </dt>
+                            <dd>
+                              <div className="text-lg font-medium text-gray-900">
+                                {pvzs.filter(p => p.status === 'open').length} из {pvzs.length}
+                              </div>
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-green-500 rounded-md p-3">
+                          <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Ежедневный доход
+                            </dt>
+                            <dd>
+                              <div className="text-lg font-medium text-gray-900">
+                                ₽{(pvzs.reduce((sum, pvz) => sum + pvz.metrics.revenue / 30, 0)).toFixed(2)}
+                              </div>
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-yellow-500 rounded-md p-3">
+                          <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                          </svg>
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Активные операторы
+                            </dt>
+                            <dd>
+                              <div className="text-lg font-medium text-gray-900">
+                                {pvzs.reduce((sum, pvz) => 
+                                  sum + (pvz.status === 'open' ? pvz.operators.length : 0), 0
+                                )}
+                              </div>
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white overflow-hidden shadow rounded-lg">
+                    <div className="px-4 py-5 sm:p-6">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 bg-red-500 rounded-md p-3">
+                          <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                        </div>
+                        <div className="ml-5 w-0 flex-1">
+                          <dl>
+                            <dt className="text-sm font-medium text-gray-500 truncate">
+                              Закрытые ПВЗ
+                            </dt>
+                            <dd>
+                              <div className="text-lg font-medium text-gray-900">
+                                {pvzs.filter(p => p.status === 'closed').length}
+                              </div>
+                            </dd>
+                          </dl>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* PVZ status table */}
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Статус ПВЗ
+                      </h3>
+                      <div className="relative rounded-md shadow-sm">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+                        <input
+                          type="text"
+                          className="focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 sm:text-sm border-gray-300 rounded-md"
+                          placeholder="Поиск по ПВЗ"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-t border-gray-200">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Название
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Компания
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Адрес
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Статус
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Операторы
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Действия
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {filteredPvzs.map((pvz) => (
+                          <tr key={pvz.id} className={pvz.status === 'open' ? 'bg-green-50' : ''}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{pvz.name}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{pvz.company}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{pvz.address}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                pvz.status === 'open' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {pvz.status === 'open' ? 'Открыт' : 'Закрыт'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{pvz.operators.join(', ')}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              {user.role === 'operator' && (
+                                <>
+                                  {pvz.status === 'closed' ? (
+                                    <button
+                                      onClick={() => openPvz(pvz.id)}
+                                      className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                    >
+                                      Открыть
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() => closePvz(pvz.id)}
+                                      className="text-red-600 hover:text-red-900 mr-4"
+                                    >
+                                      Закрыть
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => {
+                                      setModalType('location');
+                                      setShowModal(true);
+                                    }}
+                                    className="text-blue-600 hover:text-blue-900"
+                                  >
+                                    Местоположение
+                                  </button>
+                                </>
+                              )}
+                              {user.role === 'manager' && (
+                                <button
+                                  onClick={() => {
+                                    setModalType('pvzDetails');
+                                    setFormData(pvz);
+                                    setShowModal(true);
+                                  }}
+                                  className="text-indigo-600 hover:text-indigo-900"
+                                >
+                                  Подробности
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PVZ management */}
+            {activeTab === 'pvzs' && (
+              <div className="mt-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Пункты выдачи</h2>
+                  {user.role === 'admin' && (
+                    <button
+                      onClick={() => {
+                        setModalType('addPvz');
+                        setFormData({});
+                        setShowModal(true);
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Добавить ПВЗ
+                    </button>
+                  )}
+                </div>
+
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Информация о ПВЗ
+                    </h3>
+                  </div>
+                  <div className="border-t border-gray-200">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Название
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Компания
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Адрес
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Статус
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Операторы
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Действия
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {pvzs.map((pvz) => (
+                          <tr key={pvz.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{pvz.name}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{pvz.company}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{pvz.address}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                pvz.status === 'open' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {pvz.status === 'open' ? 'Открыт' : 'Закрыт'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{pvz.operators.join(', ')}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              {(user.role === 'admin' || user.role === 'manager') && (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setModalType('editPvz');
+                                      setFormData(pvz);
+                                      setShowModal(true);
+                                    }}
+                                    className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                  >
+                                    Редактировать
+                                  </button>
+                                  {user.role === 'admin' && (
+                                    <button
+                                      onClick={() => {
+                                        if (window.confirm('Вы уверены, что хотите удалить этот ПВЗ?')) {
+                                          setPvzs(pvzs.filter(p => p.id !== pvz.id));
+                                        }
+                                      }}
+                                      className="text-red-600 hover:text-red-900"
+                                    >
+                                      Удалить
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Employee management */}
+            {activeTab === 'employees' && (
+              <div className="mt-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-gray-900">Сотрудники</h2>
+                  {user.role === 'admin' && (
+                    <button
+                      onClick={() => {
+                        setModalType('addEmployee');
+                        setFormData({});
+                        setShowModal(true);
+                      }}
+                      className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    >
+                      <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      Добавить сотрудника
+                    </button>
+                  )}
+                </div>
+
+                <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                  <div className="px-4 py-5 sm:px-6">
+                    <h3 className="text-lg leading-6 font-medium text-gray-900">
+                      Информация о сотрудниках
+                    </h3>
+                  </div>
+                  <div className="border-t border-gray-200">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Имя
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Роль
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Компания
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            ПВЗ
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Статус
+                          </th>
+                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Действия
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {/* Mock employee data */}
+                        {[
+                          { id: 1, name: 'Иван Петров', role: 'operator', company: 'Company A', pvz: 'PVZ-001', status: 'active' },
+                          { id: 2, name: 'Петр Сидоров', role: 'operator', company: 'Company A', pvz: 'PVZ-001', status: 'active' },
+                          { id: 3, name: 'Анна Иванова', role: 'manager', company: 'Company A', pvz: 'PVZ-001', status: 'active' },
+                          { id: 4, name: 'Сергей Васильев', role: 'operator', company: 'Company B', pvz: 'PVZ-002', status: 'active' },
+                          { id: 5, name: 'Мария Смирнова', role: 'operator', company: 'Company B', pvz: 'PVZ-002', status: 'active' },
+                          { id: 6, name: 'Дмитрий Козлов', role: 'manager', company: 'Company B', pvz: 'PVZ-002', status: 'active' },
+                          { id: 7, name: 'Екатерина Новикова', role: 'operator', company: 'Company C', pvz: 'PVZ-003', status: 'active' },
+                          { id: 8, name: 'Алексей Петров', role: 'operator', company: 'Company C', pvz: 'PVZ-003', status: 'active' },
+                          { id: 9, name: 'Наталья Соколова', role: 'manager', company: 'Company C', pvz: 'PVZ-003', status: 'active' },
+                        ].map((employee) => (
+                          <tr key={employee.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm font-medium text-gray-900">{employee.name}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{employee.role}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{employee.company}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-gray-500">{employee.pvz}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                                employee.status === 'active' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {employee.status === 'active' ? 'Активен' : 'Неактивен'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                              {user.role === 'admin' && (
+                                <>
+                                  <button
+                                    onClick={() => {
+                                      setModalType('editEmployee');
+                                      setFormData(employee);
+                                      setShowModal(true);
+                                    }}
+                                    className="text-indigo-600 hover:text-indigo-900 mr-4"
+                                  >
+                                    Редактировать
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      if (window.confirm('Вы уверены, что хотите удалить этого сотрудника?')) {
+                                        // In a real app, this would make an API call
+                                        console.log('Deleting employee:', employee.id);
+                                      }
+                                    }}
+                                    className="text-red-600 hover:text-red-900"
+                                  >
+                                    Удалить
+                                  </button>
+                                </>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Settings */}
+            {activeTab === 'settings' && user.role === 'admin' && (
+              <div className="mt-6">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">Настройки</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div className="px-4 py-5 sm:px-6">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Общие настройки
+                      </h3>
+                    </div>
+                    <div className="border-t border-gray-200">
+                      <dl>
+                        <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <dt className="text-sm font-medium text-gray-500">Название компании</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">PVZ Management System</dd>
+                        </div>
+                        <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <dt className="text-sm font-medium text-gray-500">Тема</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <select className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                              <option>Светлая</option>
+                              <option>Темная</option>
+                              <option>Системная</option>
+                            </select>
+                          </dd>
+                        </div>
+                        <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <dt className="text-sm font-medium text-gray-500">Язык</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <select className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                              <option>Русский</option>
+                              <option>English</option>
+                            </select>
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+                    <div className="px-4 py-5 sm:px-6">
+                      <h3 className="text-lg leading-6 font-medium text-gray-900">
+                        Безопасность
+                      </h3>
+                    </div>
+                    <div className="border-t border-gray-200">
+                      <dl>
+                        <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <dt className="text-sm font-medium text-gray-500">Пароль</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <button className="text-indigo-600 hover:text-indigo-900">
+                              Изменить пароль
+                            </button>
+                          </dd>
+                        </div>
+                        <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                          <dt className="text-sm font-medium text-gray-500">Двухфакторная аутентификация</dt>
+                          <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            <div className="flex items-center">
+                              <input
+                                id="two-factor"
+                                name="two-factor"
+                                type="checkbox"
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                              />
+                              <label htmlFor="two-factor" className="ml-2 block text-sm text-gray-900">
+                                Включить двухфакторную аутентификацию
+                              </label>
+                            </div>
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
+    );
+  };
+
+  // Render modals
+  const renderModals = () => {
+    if (!showModal) return null;
+
+    return (
+      <div className="fixed z-10 inset-0 overflow-y-auto">
+        <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+          <div className="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+          </div>
+
+          <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+          <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div className="sm:flex sm:items-start">
+                <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                  {modalType === 'location' && (
+                    <>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Местоположение ПВЗ
+                      </h3>
+                      <div className="mt-4">
+                        {isTracking ? (
+                          <div className="animate-pulse">
+                            <p className="text-sm text-gray-500">Определение местоположения...</p>
+                            <div className="mt-4 h-48 bg-gray-200 rounded-md flex items-center justify-center">
+                              <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                            </div>
+                          </div>
+                        ) : location ? (
+                          <div className="h-48 bg-gray-200 rounded-md flex items-center justify-center">
+                            <div className="text-center">
+                              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <p className="mt-1 text-sm text-gray-500">Широта: {location.lat.toFixed(5)}</p>
+                              <p className="text-sm text-gray-500">Долгота: {location.lng.toFixed(5)}</p>
+                              <p className="text-sm text-gray-500">Время: {new Date(location.timestamp).toLocaleTimeString()}</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-48 bg-gray-200 rounded-md flex items-center justify-center">
+                            <div className="text-center">
+                              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                              <p className="mt-1 text-sm text-gray-500">Местоположение не определено</p>
+                              <p className="text-sm text-gray-500">Нажмите кнопку ниже, чтобы получить местоположение</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+
+                  {modalType === 'pvzDetails' && (
+                    <>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Детали ПВЗ: {formData.name}
+                      </h3>
+                      <div className="mt-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <h4 className="text-md font-medium text-gray-700 mb-2">Метрики</h4>
+                            <ul className="space-y-2">
+                              <li className="flex justify-between">
+                                <span>Ежедневные заказы:</span>
+                                <span className="font-medium">{formData.metrics.dailyOrders}</span>
+                              </li>
+                              <li className="flex justify-between">
+                                <span>Еженедельные заказы:</span>
+                                <span className="font-medium">{formData.metrics.weeklyOrders}</span>
+                              </li>
+                              <li className="flex justify-between">
+                                <span>Ежемесячные заказы:</span>
+                                <span className="font-medium">{formData.metrics.monthlyOrders}</span>
+                              </li>
+                              <li className="flex justify-between">
+                                <span>Доход:</span>
+                                <span className="font-medium">₽{formData.metrics.revenue}</span>
+                              </li>
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="text-md font-medium text-gray-700 mb-2">Финансы</h4>
+                            <ul className="space-y-2">
+                              <li className="flex justify-between">
+                                <span>Приход:</span>
+                                <span className="font-medium">₽{formData.financials.cashIn}</span>
+                              </li>
+                              <li className="flex justify-between">
+                                <span>Расход:</span>
+                                <span className="font-medium">₽{formData.financials.cashOut}</span>
+                              </li>
+                              <li className="flex justify-between">
+                                <span>Баланс:</span>
+                                <span className="font-medium">₽{formData.financials.balance}</span>
+                              </li>
+                              <li className="flex justify-between">
+                                <span>Расходы:</span>
+                                <span className="font-medium">₽{formData.financials.expenses}</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {modalType === 'addPvz' && (
+                    <>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Добавить ПВЗ
+                      </h3>
+                      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+                        <div>
+                          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            Название
+                          </label>
+                          <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            value={formData.name || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+                            Компания
+                          </label>
+                          <input
+                            type="text"
+                            name="company"
+                            id="company"
+                            value={formData.company || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                            Адрес
+                          </label>
+                          <input
+                            type="text"
+                            name="address"
+                            id="address"
+                            value={formData.address || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                            Статус
+                          </label>
+                          <select
+                            id="status"
+                            name="status"
+                            value={formData.status || 'closed'}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          >
+                            <option value="closed">Закрыт</option>
+                            <option value="open">Открыт</option>
+                          </select>
+                        </div>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setShowModal(false)}
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                          >
+                            Отмена
+                          </button>
+                          <button
+                            type="submit"
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          >
+                            Сохранить
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+
+                  {modalType === 'editPvz' && (
+                    <>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Редактировать ПВЗ: {formData.name}
+                      </h3>
+                      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+                        <div>
+                          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            Название
+                          </label>
+                          <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            value={formData.name || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+                            Компания
+                          </label>
+                          <input
+                            type="text"
+                            name="company"
+                            id="company"
+                            value={formData.company || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                            Адрес
+                          </label>
+                          <input
+                            type="text"
+                            name="address"
+                            id="address"
+                            value={formData.address || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                            Статус
+                          </label>
+                          <select
+                            id="status"
+                            name="status"
+                            value={formData.status || 'closed'}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          >
+                            <option value="closed">Закрыт</option>
+                            <option value="open">Открыт</option>
+                          </select>
+                        </div>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setShowModal(false)}
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                          >
+                            Отмена
+                          </button>
+                          <button
+                            type="submit"
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          >
+                            Сохранить
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+
+                  {modalType === 'addEmployee' && (
+                    <>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Добавить сотрудника
+                      </h3>
+                      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+                        <div>
+                          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            Имя
+                          </label>
+                          <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            value={formData.name || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                            Роль
+                          </label>
+                          <select
+                            id="role"
+                            name="role"
+                            value={formData.role || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                            required
+                          >
+                            <option value="">Выберите роль</option>
+                            <option value="operator">Оператор</option>
+                            <option value="manager">Менеджер</option>
+                            <option value="admin">Администратор</option>
+                            <option value="financier">Финансист</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+                            Компания
+                          </label>
+                          <input
+                            type="text"
+                            name="company"
+                            id="company"
+                            value={formData.company || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="pvz" className="block text-sm font-medium text-gray-700">
+                            ПВЗ
+                          </label>
+                          <select
+                            id="pvz"
+                            name="pvz"
+                            value={formData.pvz || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                            required
+                          >
+                            <option value="">Выберите ПВЗ</option>
+                            {pvzs.map((pvz) => (
+                              <option key={pvz.id} value={pvz.name}>{pvz.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                            Статус
+                          </label>
+                          <select
+                            id="status"
+                            name="status"
+                            value={formData.status || 'active'}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          >
+                            <option value="active">Активен</option>
+                            <option value="inactive">Неактивен</option>
+                          </select>
+                        </div>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setShowModal(false)}
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                          >
+                            Отмена
+                          </button>
+                          <button
+                            type="submit"
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          >
+                            Сохранить
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+
+                  {modalType === 'editEmployee' && (
+                    <>
+                      <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
+                        Редактировать сотрудника: {formData.name}
+                      </h3>
+                      <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+                        <div>
+                          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                            Имя
+                          </label>
+                          <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            value={formData.name || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                            Роль
+                          </label>
+                          <select
+                            id="role"
+                            name="role"
+                            value={formData.role || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                            required
+                          >
+                            <option value="">Выберите роль</option>
+                            <option value="operator">Оператор</option>
+                            <option value="manager">Менеджер</option>
+                            <option value="admin">Администратор</option>
+                            <option value="financier">Финансист</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="company" className="block text-sm font-medium text-gray-700">
+                            Компания
+                          </label>
+                          <input
+                            type="text"
+                            name="company"
+                            id="company"
+                            value={formData.company || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="pvz" className="block text-sm font-medium text-gray-700">
+                            ПВЗ
+                          </label>
+                          <select
+                            id="pvz"
+                            name="pvz"
+                            value={formData.pvz || ''}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                            required
+                          >
+                            <option value="">Выберите ПВЗ</option>
+                            {pvzs.map((pvz) => (
+                              <option key={pvz.id} value={pvz.name}>{pvz.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <label htmlFor="status" className="block text-sm font-medium text-gray-700">
+                            Статус
+                          </label>
+                          <select
+                            id="status"
+                            name="status"
+                            value={formData.status || 'active'}
+                            onChange={handleInputChange}
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                          >
+                            <option value="active">Активен</option>
+                            <option value="inactive">Неактивен</option>
+                          </select>
+                        </div>
+                        <div className="flex justify-end space-x-3">
+                          <button
+                            type="button"
+                            onClick={() => setShowModal(false)}
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                          >
+                            Отмена
+                          </button>
+                          <button
+                            type="submit"
+                            className="inline-flex justify-center px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                          >
+                            Сохранить
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div>
+      {showLogin ? renderLogin() : renderDashboard()}
+      {renderModals()}
+    </div>
+  );
+};
+
+export default App;
+```
